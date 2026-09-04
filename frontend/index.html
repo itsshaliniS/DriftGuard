@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drift Guard | Intelligent MLOps</title>
+    <!-- Modern Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- BoxIcons CDN for beautiful minimal SVG UI elements -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="css/style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="js/dashboard.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Control Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div class="brand">
+                <i class='bx bx-radar pulse-icon'></i>
+                <h1>Drift Guard</h1>
+            </div>
+            
+            <form id="driftForm" class="upload-form">
+                <h3><i class='bx bx-cloud-upload'></i> Pipeline Ingestion</h3>
+                
+                <div class="file-upload-wrapper">
+                    <label for="baselineFile" class="file-label">
+                        <i class='bx bx-data'></i> Baseline Data (CSV)
+                    </label>
+                    <input type="file" id="baselineFile" accept=".csv" required>
+                </div>
+                
+                <div class="file-upload-wrapper">
+                    <label for="productionFile" class="file-label">
+                        <i class='bx bx-git-branch'></i> Production Batch (CSV)
+                    </label>
+                    <input type="file" id="productionFile" accept=".csv" required>
+                </div>
+                
+                <button type="submit" id="analyzeBtn" class="primary-btn glow-effect">
+                    <i class='bx bx-scan'></i> Run Degradation Scan
+                    <div class="loader" id="btnLoader" style="display:none;"></div>
+                </button>
+            </form>
+            <div id="statusMessage" class="status-msg"></div>
+
+            <div class="model-perf-panel">
+                <div class="perf-header">
+                    <div class="perf-title">
+                        <i class='bx bx-brain'></i>
+                        <span>AI Performance</span>
+                    </div>
+                    <span class="perf-badge">Post-Drift</span>
+                </div>
+                <div class="perf-grid">
+                    <div class="perf-card">
+                        <span class="perf-label">Accuracy</span>
+                        <strong id="accVal" class="perf-val">--</strong>
+                    </div>
+                    <div class="perf-card">
+                        <span class="perf-label">Precision</span>
+                        <strong id="precVal" class="perf-val">--</strong>
+                    </div>
+                    <div class="perf-card">
+                        <span class="perf-label">Recall</span>
+                        <strong id="recVal" class="perf-val">--</strong>
+                    </div>
+                    <div class="perf-card">
+                        <span class="perf-label">F1 Score</span>
+                        <strong id="f1Val" class="perf-val">--</strong>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Analytics Content -->
+        <main class="dashboard">
+            <header class="top-nav glass-panel">
+                <div class="nav-title">
+                    <h2>Continuous Drift Intelligence</h2>
+                    <p>Monitoring algorithmic decay across high-dimensional feature spaces.</p>
+                </div>
+                <div class="cluster-status">
+                    <span class="pulse-dot"></span>
+                    <div class="badge" id="mlflowBadge">Cluster: Active</div>
+                </div>
+            </header>
+
+            <div class="metrics-grid">
+                <div class="metric-card glass-panel pop-in" style="animation-delay: 0.1s;">
+                    <div class="metric-header">
+                        <span class="metric-title">Compound Health Score</span>
+                        <i class='bx bx-heart-circle icon-bg'></i>
+                    </div>
+                    <h1 class="metric-value" id="healthScore">--%</h1>
+                </div>
+                <div class="metric-card glass-panel pop-in" style="animation-delay: 0.2s;">
+                    <div class="metric-header">
+                        <span class="metric-title">Critical Drift Features</span>
+                        <i class='bx bx-error-alt icon-bg warn'></i>
+                    </div>
+                    <h1 class="metric-value warn-text" id="driftedCount">--</h1>
+                </div>
+                <div class="metric-card glass-panel pop-in" style="animation-delay: 0.3s;">
+                    <div class="metric-header">
+                        <span class="metric-title">Total Features Processed</span>
+                        <i class='bx bx-analyse icon-bg'></i>
+                    </div>
+                    <h1 class="metric-value" id="totalFeatures">--</h1>
+                </div>
+            </div>
+
+            <!-- Chart.js Triple Visualizations -->
+            <div class="charts-section">
+                <div class="chart-container glass-panel fade-up">
+                    <div class="chart-header">
+                        <h3><i class='bx bx-bar-chart-alt-2'></i> Kolmogorov-Smirnov Differential</h3>
+                        <span class="tooltip"><i class='bx bx-info-circle'></i><span class="tooltiptext">Measures maximum distributional distance between baseline and prod limits natively.</span></span>
+                    </div>
+                    <div class="canvas-wrapper"><canvas id="ksChart"></canvas></div>
+                </div>
+                
+                <div class="chart-container glass-panel fade-up" style="animation-delay: 0.1s;">
+                    <div class="chart-header">
+                        <h3><i class='bx bx-line-chart'></i> Population Stability Index</h3>
+                        <span class="tooltip"><i class='bx bx-info-circle'></i><span class="tooltiptext">Logarithmic gap threshold. >0.25 indicates critical decay.</span></span>
+                    </div>
+                    <div class="canvas-wrapper"><canvas id="psiChart"></canvas></div>
+                </div>
+                
+                <div class="chart-container glass-panel fade-up" style="animation-delay: 0.2s; grid-column: span 2;">
+                    <div class="chart-header">
+                        <h3><i class='bx bx-area'></i> Subpopulation Profiler: <span id="worstFeatureName" class="warn-text">Standing By</span></h3>
+                        <span class="tooltip"><i class='bx bx-info-circle'></i><span class="tooltiptext">Extracts the explicit mathematical histogram bins of the highest-degrading feature mapping exact organic shift natively.</span></span>
+                    </div>
+                    <div class="canvas-wrapper"><canvas id="distChart"></canvas></div>
+                    <div id="driftExplanation" style="margin-top: 16px; font-size: 14.5px; line-height: 1.6; color: var(--text-primary); background: rgba(0,0,0,0.25); padding: 16px 20px; border-radius: 8px; border-left: 4px solid var(--danger); display: none;"></div>
+                </div>
+            </div>
+
+            <section class="details-section glass-panel slide-up" style="animation-delay: 0.3s;">
+                <h3><i class='bx bx-table'></i> Granular Evaluation Matrix</h3>
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Feature Name</th>
+                                <th>KS Statistic</th>
+                                <th>PSI Score</th>
+                                <th>JS Divergence</th>
+                                <th>Severity Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="6" class="empty-state">
+                                    <i class='bx bx-upload' style='font-size: 64px; color: var(--text-secondary); opacity: 0.5; margin-bottom: 12px;'></i>
+                                    <p style="font-size: 15px; font-weight: 500;">Deploy CSV payload distributions to initiate the analytics grid.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,50 @@
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing Artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Temporary & Scratch Files
+tmp_api_test.py
+*.log
+
+# Datasets & Large Data Files
+*.csv
+*.tsv
+*.parquet
+*.xlsx
+WA_Fn-UseC_-Telco-Customer-Churn.csv
+data/*.csv
+
+
+# Generated Runtime Models (Retained during training runs)
+models/*.joblib
+!models/best_churn_model.pkl
+!models/scaler.pkl
+
+# IDE & Editor Settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Specific Files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment Variables & Secrets
+.env
